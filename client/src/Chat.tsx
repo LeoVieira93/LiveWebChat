@@ -1,6 +1,7 @@
 import './Chat.scss';
 import { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 export default function Chat() {
     const socketRef = useRef<Socket | null>(null);
@@ -10,6 +11,7 @@ export default function Chat() {
     const [message, setMessage] = useState('');
     const [chat, setChat] = useState<{ author: string; text: string }[]>([]);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+    const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -55,6 +57,11 @@ export default function Chat() {
             socketRef.current?.emit('message', newMessage);
             setMessage('');
         }
+    };
+
+    const handleEmojiClick = (emojiData: EmojiClickData) => {
+        setMessage((prevMessage) => prevMessage + emojiData.emoji);
+        setShowEmojiPicker(false);
     };
 
     if (!hasJoined) {
@@ -111,6 +118,17 @@ export default function Chat() {
                 <button onClick={sendMessage} className="chat-button">
                     Enviar
                 </button>
+                <button
+                    className="emoji-button"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                >
+                    😊
+                </button>
+                {showEmojiPicker && (
+                    <div className="emoji-picker">
+                        <EmojiPicker onEmojiClick={handleEmojiClick} />
+                    </div>
+                )}
             </div>
         </div>
     );
