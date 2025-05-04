@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { io, Socket } from 'socket.io-client';
+
 import Login from './Login';
 import Header from './Header';
 import Chat from './Chat';
-import { Page } from "./types.ts";
+import { Page } from './types.ts';
 import './App.scss';
 
 function Home() {
@@ -13,8 +15,8 @@ function Home() {
                 <div className="card clickable">
                     <div className="card-content">
                         <div className="card-images">
-                            <img src="../public/CS2.png" alt="Counter Strike 2" className="card-image" />
-                            <img src="../public/furia-no-name-esports-seeklogo.png" alt="Furia Esports" className="card-image" />
+                            <img src="/CS2.png" alt="Counter Strike 2" className="card-image" />
+                            <img src="/furia-no-name-esports-seeklogo.png" alt="Furia Esports" className="card-image" />
                         </div>
                         <h2>Counter Strike 2</h2>
                     </div>
@@ -24,8 +26,8 @@ function Home() {
                 <div className="card clickable">
                     <div className="card-content">
                         <div className="card-images">
-                            <img src="../public/KingsLeague.png" alt="Kings League" className="card-image" />
-                            <img src="../public/FuriaKings.png" alt="Furia Kings" className="card-image" />
+                            <img src="/KingsLeague.png" alt="Kings League" className="card-image" />
+                            <img src="/FuriaKings.png" alt="Furia Kings" className="card-image" />
                         </div>
                         <h2>Kings League Brasil</h2>
                     </div>
@@ -40,23 +42,23 @@ function CS2() {
         <div className="page-content cs2-page">
             <h2>Counter Strike 2</h2>
             <div className="home-cards">
-                <Link to="https://www.hltv.org/team/8297/furia#tab-eventsBox" target="_blank">
+                <a href="https://www.hltv.org/team/8297/furia#tab-eventsBox" target="_blank" rel="noopener noreferrer">
                     <div className="card clickable">
                         <div className="card-content">
                             <div className="card-images">
-                                <img src="../public/CS2.png" alt="Competições" className="card-image" />
-                                <img src="../public/furia-no-name-esports-seeklogo.png" alt="Competições" className="card-image" />
+                                <img src="/CS2.png" alt="Competições" className="card-image" />
+                                <img src="/furia-no-name-esports-seeklogo.png" alt="Competições" className="card-image" />
                             </div>
                             <h2>Competições</h2>
                         </div>
                     </div>
-                </Link>
+                </a>
                 <Link to="/cs2/transmissao">
                     <div className="card clickable">
                         <div className="card-content">
                             <div className="card-images">
-                                <img src="../public/CS2.png" alt="Transmissão" className="card-image" />
-                                <img src="../public/furia-no-name-esports-seeklogo.png" alt="Transmissão" className="card-image" />
+                                <img src="/CS2.png" alt="Transmissão" className="card-image" />
+                                <img src="/furia-no-name-esports-seeklogo.png" alt="Transmissão" className="card-image" />
                             </div>
                             <h2>Transmissão</h2>
                         </div>
@@ -72,24 +74,23 @@ function KingsLeague() {
         <div className="page-content">
             <h2>Kings League Brasil</h2>
             <div className="home-cards">
-                <Link to="https://kingsleague.pro/pt/brazil/classificacao" target="_blank">
+                <a href="https://kingsleague.pro/pt/brazil/classificacao" target="_blank" rel="noopener noreferrer">
                     <div className="card clickable">
                         <div className="card-content">
                             <div className="card-images">
-                                <img src="../public/KingsLeague.png" alt="Classificação" className="card-image" />
-                                <img src="../public/FuriaKings.png" alt="Classificação" className="card-image" />
+                                <img src="/KingsLeague.png" alt="Classificação" className="card-image" />
+                                <img src="/FuriaKings.png" alt="Classificação" className="card-image" />
                             </div>
                             <h2>Classificação</h2>
                         </div>
                     </div>
-                </Link>
+                </a>
                 <Link to="/kings-league/transmissao">
                     <div className="card clickable">
                         <div className="card-content">
                             <div className="card-images">
-                                <img src="../public/KingsLeague.png" alt="Transmissão" className="card-image" />
-                                <img src="../public/FuriaKings.png" alt="Transmissão" className="card-image" />
-
+                                <img src="/KingsLeague.png" alt="Transmissão" className="card-image" />
+                                <img src="/FuriaKings.png" alt="Transmissão" className="card-image" />
                             </div>
                             <h2>Transmissão</h2>
                         </div>
@@ -102,8 +103,7 @@ function KingsLeague() {
 
 function CS2Transmissao({ username }: { username: string }) {
     return (
-        <div className="page-content">
-            <h2>Transmissão ao Vivo - CS2</h2>
+        <div className="transmissao-page">
             <div className="stream-chat-wrapper">
                 <div className="video-player">
                     <iframe
@@ -115,7 +115,7 @@ function CS2Transmissao({ username }: { username: string }) {
                     ></iframe>
                 </div>
                 <div className="chat-wrapper">
-                    <Chat username={username} />
+                    <Chat username={username} room="cs2" />
                 </div>
             </div>
         </div>
@@ -124,23 +124,19 @@ function CS2Transmissao({ username }: { username: string }) {
 
 function KingsLeagueTransmissao({ username }: { username: string }) {
     return (
-        <div className="page-content">
-            <h2>Transmissão ao Vivo - Kings League</h2>
+        <div className="transmissao-page">
             <div className="stream-chat-wrapper">
                 <div className="video-player">
                     <iframe
-                        width="560"
-                        height="315"
                         src="https://www.youtube.com/embed/mhPbU8x1j0s?si=8KA1QIlrHdq5zvHT"
                         title="YouTube video player"
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
                     ></iframe>
                 </div>
                 <div className="chat-wrapper">
-                    <Chat username={username} />
+                    <Chat username={username} room="kings-league" />
                 </div>
             </div>
         </div>
@@ -150,6 +146,23 @@ function KingsLeagueTransmissao({ username }: { username: string }) {
 export default function App() {
     const [username, setUsername] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState<Page>('home');
+    const socketRef = useRef<Socket | null>(null);
+
+    useEffect(() => {
+        if (username && !socketRef.current) {
+            socketRef.current = io('http://localhost:3333');
+
+            socketRef.current.emit('setUsername', username);
+
+            socketRef.current.on('connect_error', (error) => {
+                console.error('Conexão com o servidor falhou', error);
+            });
+        }
+
+        return () => {
+            socketRef.current?.disconnect();
+        };
+    }, [username]);
 
     if (!username) return <Login onLogin={setUsername} />;
 
@@ -159,6 +172,8 @@ export default function App() {
                 onLogout={() => {
                     setUsername(null);
                     localStorage.removeItem('chatHistory');
+                    socketRef.current?.disconnect();
+                    socketRef.current = null;
                 }}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
