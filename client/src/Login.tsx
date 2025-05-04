@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './Login.scss';
 
 interface LoginProps {
     onLogin: (username: string) => void;
@@ -25,7 +26,14 @@ export default function Login({ onLogin }: LoginProps) {
     return (
         <div className="login-container">
             <div className="login-box">
-                <h2 className="login-title">Bem-vindo ao Chat!</h2>
+                <div className="login-header">
+                    <img
+                        src="../public/furia-no-name-esports-seeklogo.png"
+                        alt="Furia Esports"
+                        className="login-logo"
+                    />
+                    <h2 className="login-title">Furia's Fan Lounge</h2>
+                </div>
                 <input
                     type="text"
                     value={username}
@@ -50,4 +58,3 @@ export default function Login({ onLogin }: LoginProps) {
         </div>
     );
 }
-
