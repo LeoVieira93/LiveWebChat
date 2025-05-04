@@ -1,42 +1,100 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
+html {
+  scroll-behavior: smooth;
+}
+
+.home-cards {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
   padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
 }
 
 .card {
-  padding: 2em;
+  background: #1e1e1e;
+  color: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 300px;
+  box-shadow: 0 0 12px rgba(100, 108, 255, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: left;
+  cursor: default;
 }
 
-.read-the-docs {
-  color: #888;
+.card h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.card p {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.card.clickable {
+  cursor: pointer;
+}
+
+.card.clickable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(100, 108, 255, 0.5);
+  background-color: #2a2a2a;
+}
+
+.page-content {
+  padding: 2rem;
+  text-align: left;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cs2-page {
+  .cs2-nav {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    a {
+      color: #64aaff;
+      font-weight: bold;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      background-color: #2a2a2a;
+      border-radius: 6px;
+      transition: background 0.3s;
+
+      &:hover {
+        background-color: #3b3b3b;
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .cs2-section {
+    margin-bottom: 3rem;
+  }
+
+  .stream-chat-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+
+  .video-player {
+    flex: 1 1 560px;
+    min-width: 300px;
+
+    iframe {
+      width: 100%;
+      height: 315px;
+      border-radius: 8px;
+    }
+  }
+
+  .chat-wrapper {
+    flex: 1 1 300px;
+    max-width: 400px;
+  }
 }

@@ -1,0 +1,1 @@
+export type Page = 'home' | 'noticias' | 'loja' | 'cs2' | 'kings-league';

@@ -3,11 +3,13 @@ import { useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
-export default function Chat() {
+interface ChatProps {
+    username: string;
+}
+
+export default function Chat({ username }: ChatProps) {
     const socketRef = useRef<Socket | null>(null);
 
-    const [username, setUsername] = useState('');
-    const [hasJoined, setHasJoined] = useState(false);
     const [message, setMessage] = useState('');
     const [chat, setChat] = useState<{ author: string; text: string }[]>([]);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
@@ -22,8 +24,9 @@ export default function Chat() {
             setChat(JSON.parse(savedChat));
         }
 
+        socketRef.current.emit('setUsername', username);
+
         socketRef.current.on('message', (message: { author: string; text: string }) => {
-            console.log('Mensagem recebida do servidor:', message);
             setChat(prev => {
                 const updated = [...prev, message];
                 localStorage.setItem('chatHistory', JSON.stringify(updated));
@@ -38,18 +41,11 @@ export default function Chat() {
         return () => {
             socketRef.current?.disconnect();
         };
-    }, []);
+    }, [username]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chat]);
-
-    const joinChat = () => {
-        if (username.trim()) {
-            socketRef.current?.emit('setUsername', username);
-            setHasJoined(true);
-        }
-    };
 
     const sendMessage = () => {
         if (message.trim()) {
@@ -64,33 +60,14 @@ export default function Chat() {
         setShowEmojiPicker(false);
     };
 
-    if (!hasJoined) {
-        return (
-            <div className="join-container">
-                <div className="join-box">
-                    <h2 className="join-title">Digite seu nome para entrar</h2>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        className="join-input"
-                        placeholder="Seu nome"
-                        onKeyDown={(e) => e.key === 'Enter' && joinChat()}
-                    />
-                    <button onClick={joinChat} className="join-button">
-                        Entrar
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="chat-container">
-            <h1 className="chat-title">Chat</h1>
+            <h1 className="chat-title">Chat - Olá, {username}!</h1>
 
             <div className="chat-users">
-                Usuários online: {onlineUsers.length === 1 ? '1 usuário online' : `${onlineUsers.length} usuários online`}
+                {onlineUsers.length === 1
+                    ? '1 usuário online'
+                    : `${onlineUsers.length} usuários online`}
             </div>
 
             <div className="chat-box">
@@ -129,7 +106,6 @@ export default function Chat() {
                         <EmojiPicker onEmojiClick={handleEmojiClick} />
                     </div>
                 )}
-
             </div>
         </div>
     );
