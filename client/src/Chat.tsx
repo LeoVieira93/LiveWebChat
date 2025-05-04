@@ -129,6 +129,7 @@ export default function Chat() {
                         <EmojiPicker onEmojiClick={handleEmojiClick} />
                     </div>
                 )}
+
             </div>
         </div>
     );
