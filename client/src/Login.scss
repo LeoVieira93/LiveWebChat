@@ -98,6 +98,15 @@ body,
   }
 }
 
+.google-button {
+  background-color: #db4437;
+  color: white;
+  margin-top: 10px;
+
+  &:hover {
+    background-color: #c33c2e;
+  }
+}
 
 .error-message {
   color: #ff4d4d;

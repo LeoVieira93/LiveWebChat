@@ -7,6 +7,7 @@ import Header from './Header';
 import Chat from './Chat';
 import { Page } from './types.ts';
 import './App.scss';
+import {jwtDecode, JwtPayload} from "jwt-decode";
 
 function Home() {
     return (
@@ -149,6 +150,32 @@ export default function App() {
     const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tokenFromURL = params.get('token');
+
+        const token = tokenFromURL || localStorage.getItem('token');
+
+        if (token) {
+            try {
+                const decoded = jwtDecode<JwtPayload & { username: string }>(token);
+                if (decoded.exp && decoded.exp * 1000 > Date.now()) {
+                    setUsername(decoded.username);
+                    localStorage.setItem('token', token);
+
+                    if (tokenFromURL) {
+                        // Remove o token da URL sem recarregar a página
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                } else {
+                    localStorage.removeItem('token');
+                }
+            } catch (error) {
+                localStorage.removeItem('token');
+            }
+        }
+    }, []);
+
+    useEffect(() => {
         if (username && (!socketRef.current || !socketRef.current.connected)) {
             socketRef.current = io('http://localhost:3333', {
                 auth: {
@@ -168,6 +195,14 @@ export default function App() {
         };
     }, [username]);
 
+    const handleLogout = () => {
+        setUsername(null);
+        localStorage.removeItem('chatHistory');
+        localStorage.removeItem('token');
+        socketRef.current?.disconnect();
+        socketRef.current = null;
+    };
+
     if (!username) {
         return (
             <Router>
@@ -186,26 +221,21 @@ export default function App() {
     return (
         <Router>
             <Header
-                onLogout={() => {
-                    setUsername(null);
-                    localStorage.removeItem('chatHistory');
-                    localStorage.removeItem('token');
-                    socketRef.current?.disconnect();
-                    socketRef.current = null;
-                }}
+                onLogout={handleLogout}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 username={username}
             />
             <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<Navigate to="/home" />} />
+                <Route path="/home" element={<Home />} />
                 <Route path="/cs2" element={<CS2 />} />
                 <Route path="/kings-league" element={<KingsLeague />} />
                 <Route path="/cs2/transmissao" element={<CS2Transmissao username={username} />} />
                 <Route path="/kings-league/transmissao" element={<KingsLeagueTransmissao username={username} />} />
                 <Route path="/noticias" element={<div style={{ padding: '1rem' }}>📰 Notícias em breve!</div>} />
                 <Route path="/loja" element={<div style={{ padding: '1rem' }}>🛙️ Loja em construção!</div>} />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
         </Router>
     );

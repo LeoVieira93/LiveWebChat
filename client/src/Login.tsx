@@ -1,16 +1,42 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import './Login.scss';
 
 interface LoginProps {
     onLogin: (username: string) => void;
 }
 
+interface DecodedToken {
+    username: string;
+    id: string;
+    exp: number;
+    iat: number;
+}
+
 export default function Login({ onLogin }: LoginProps) {
-    const [username, setUsername] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [errorMessage, setErrorMessage] = useState<string>('');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const token = params.get('token');
+
+        if (token) {
+            try {
+                const decoded = jwtDecode<DecodedToken>(token);
+                localStorage.setItem('token', token);
+                onLogin(decoded.username);
+                navigate('/chat');
+            } catch (err) {
+                console.error('Token JWT inválido:', err);
+                setErrorMessage('Erro ao processar login com Google.');
+            }
+        }
+    }, [location.search]);
 
     const handleSubmit = async () => {
         if (!username.trim() || !password.trim()) {
@@ -34,6 +60,7 @@ export default function Login({ onLogin }: LoginProps) {
 
             localStorage.setItem('token', data.token);
             onLogin(username);
+            navigate('/chat');
         } catch (err) {
             console.error('Erro ao fazer login:', err);
             setErrorMessage('Erro de conexão com o servidor.');
@@ -45,12 +72,13 @@ export default function Login({ onLogin }: LoginProps) {
             <div className="login-box">
                 <div className="login-header">
                     <img
-                        src="../public/furia-no-name-esports-seeklogo.png"
+                        src="/furia-no-name-esports-seeklogo.png"
                         alt="Furia Esports"
                         className="login-logo"
                     />
                     <h2 className="login-title">Furia's Fan Lounge</h2>
                 </div>
+
                 <input
                     type="text"
                     value={username}
@@ -78,6 +106,13 @@ export default function Login({ onLogin }: LoginProps) {
                     onClick={() => navigate('/register')}
                 >
                     Criar Conta
+                </button>
+
+                <button
+                    className="login-button google-button"
+                    onClick={() => window.location.href = 'http://localhost:3333/auth/google'}
+                >
+                    Entrar com Google
                 </button>
             </div>
         </div>

@@ -1,3 +1,4 @@
+// app.ts
 import express, { Request, Response } from 'express';
 import { createServer } from 'http';
 import { Server as Io } from 'socket.io';
@@ -5,10 +6,59 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { authenticateToken } from './authMiddleware';
+import session from 'express-session';
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import dotenv from 'dotenv';
+import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 
-const JWT_SECRET = 'seu_segredo_jwt';
+dotenv.config();
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL!;
+const JWT_SECRET = process.env.JWT_SECRET!;
+
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    fullName: { type: String, required: true },
+    cpf: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+});
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
+passport.serializeUser((user: any, done) => done(null, user));
+passport.deserializeUser((user: any, done) => done(null, user));
+
+passport.use(new GoogleStrategy(
+    {
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: GOOGLE_CALLBACK_URL
+    },
+    async (accessToken, refreshToken, profile, done) => {
+        try {
+            const existing = await User.findOne({ username: profile.id });
+            if (existing) return done(null, existing);
+
+            const newUser = await User.create({
+                username: profile.id,
+                password: await bcrypt.hash(profile.id, 10),
+                fullName: profile.displayName || 'Sem Nome',
+                cpf: '000.000.000-00',
+                email: profile.emails?.[0]?.value || 'sem-email@google.com',
+                phone: '(00) 00000-0000'
+            });
+
+            return done(null, newUser);
+        } catch (err) {
+            return done(err, undefined);
+        }
+    }
+));
 
 class App {
     public app: express.Application;
@@ -36,13 +86,26 @@ class App {
         this.app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
         this.app.use(bodyParser.json());
 
+        this.app.use(session({
+            secret: 'algum_valor_secreto',
+            resave: false,
+            saveUninitialized: false
+        }));
+
+        this.app.use(passport.initialize());
+        this.app.use(passport.session());
+
         this.io.use((socket, next) => {
             const token = socket.handshake.auth.token;
             if (!token) return next(new Error('Token não fornecido'));
 
-            jwt.verify(token, JWT_SECRET, (err: jwt.VerifyErrors | null, decoded: jwt.JwtPayload | string | undefined) => {
-                if (err || !decoded || typeof decoded === 'string') return next(new Error('Token inválido'));
-                socket.data.username = (decoded as jwt.JwtPayload).username;
+            jwt.verify(token, JWT_SECRET, (err: VerifyErrors | null, decoded: string | JwtPayload | undefined) => {
+                if (err || !decoded || typeof decoded === 'string') {
+                    return next(new Error('Token inválido'));
+                }
+
+                // Agora o TypeScript sabe que decoded é JwtPayload
+                socket.data.username = decoded.username;
                 next();
             });
         });
@@ -59,17 +122,6 @@ class App {
     }
 
     private async seedUsers() {
-        const userSchema = new mongoose.Schema({
-            username: { type: String, required: true, unique: true },
-            password: { type: String, required: true },
-            fullName: { type: String, required: true },
-            cpf: { type: String, required: true },
-            email: { type: String, required: true },
-            phone: { type: String, required: true },
-        });
-
-        const User = mongoose.models.User || mongoose.model('User', userSchema);
-
         const users = [
             {
                 username: 'LeoVieira',
@@ -110,17 +162,6 @@ class App {
     }
 
     private routes() {
-        const userSchema = new mongoose.Schema({
-            username: { type: String, required: true, unique: true },
-            password: { type: String, required: true },
-            fullName: { type: String, required: true },
-            cpf: { type: String, required: true },
-            email: { type: String, required: true },
-            phone: { type: String, required: true },
-        });
-
-        const User = mongoose.model('User', userSchema);
-
         this.app.post('/api/register', async (req: Request, res: Response) => {
             const { username, password, fullName, cpf, email, phone } = req.body;
 
@@ -163,6 +204,18 @@ class App {
                 res.status(500).json({ error: 'Erro ao buscar perfil' });
             }
         });
+
+        this.app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+        this.app.get('/auth/google/callback',
+            passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:5173/login' }),
+            (req, res) => {
+                const user = req.user as any;
+                const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+
+                res.redirect(`http://localhost:5173/?token=${token}`);
+            }
+        );
     }
 
     private sockets() {
@@ -171,14 +224,11 @@ class App {
 
             socket.on('setUsername', (username) => {
                 socket.data.username = username;
-                console.log(`✅ Nome de usuário definido: ${username}`);
             });
 
             socket.on('joinRoom', (room: string) => {
                 socket.join(room);
                 const username = socket.data.username ?? 'Usuário Desconhecido';
-                console.log(`🚪 ${username} entrou na sala: ${room}`);
-
                 this.io.to(room).emit('users', this.getOnlineUsers(room));
             });
 
@@ -186,13 +236,10 @@ class App {
                 const rooms = Array.from(socket.rooms).filter(r => r !== socket.id);
                 rooms.forEach(room => {
                     this.io.to(room).emit('message', data);
-                    console.log(`💬 Mensagem para a sala ${room}:`, data);
                 });
             });
 
             socket.on('disconnect', () => {
-                const username = socket.data.username ?? socket.id;
-                console.log(`❌ Desconectado: ${username}`);
                 socket.rooms.forEach(room => {
                     this.io.to(room).emit('users', this.getOnlineUsers(room));
                 });
