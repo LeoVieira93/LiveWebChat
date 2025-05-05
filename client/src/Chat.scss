@@ -41,10 +41,10 @@
   padding: 0.5rem 1rem;
   border-radius: 6px;
   max-width: 70%;
-  align-self: flex-start; /* Mensagens de terceiros à esquerda */
+  align-self: flex-start;
 
   &.sent {
-    align-self: flex-end; /* Mensagens enviadas por você à direita */
+    align-self: flex-end;
     background-color: #3b82f6;
     color: white;
   }

@@ -7,7 +7,7 @@ interface RegisterProps {
 }
 
 export default function Register({ onRegisterSuccess }: RegisterProps) {
-    const navigate = useNavigate(); // ✅ Inicializar hook
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -46,7 +46,7 @@ export default function Register({ onRegisterSuccess }: RegisterProps) {
     };
 
     const handleBack = () => {
-        navigate('/'); // ✅ Volta para a tela de login
+        navigate('/');
     };
 
     return (

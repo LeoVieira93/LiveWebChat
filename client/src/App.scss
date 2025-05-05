@@ -102,14 +102,14 @@ a {
 
     .chat-wrapper {
       flex: 1;
-      background-color: #000; // Fundo preto
+      background-color: #000;
       border-radius: 8px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       min-width: 0;
       min-height: 600px;
-      border: 1px solid white; // Borda branca ao redor do chat
+      border: 1px solid white;
 
       .chat-messages {
         flex: 1;
@@ -120,8 +120,8 @@ a {
         gap: 0.5rem;
 
         .message {
-          background-color: #fff; // Fundo branco da mensagem
-          color: #000; // Texto preto
+          background-color: #fff;
+          color: #000;
           padding: 0.5rem 1rem;
           border-radius: 6px;
           max-width: 100%;
@@ -130,15 +130,15 @@ a {
       }
 
       .chat-input {
-        border-top: 1px solid #fff; // Borda branca superior
+        border-top: 1px solid #fff;
         padding: 1rem;
         display: flex;
-        background-color: #000; // Mantém fundo preto
+        background-color: #000;
 
         input {
           flex: 1;
           padding: 0.5rem 1rem;
-          border: 1px solid white; // Borda branca no input
+          border: 1px solid white;
           border-radius: 4px;
           outline: none;
           background-color: #111;
