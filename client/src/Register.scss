@@ -1,0 +1,28 @@
+@import './Login.scss'; // Reaproveita estilos comuns
+
+.login-container {
+  @extend .login-container;
+}
+
+.login-box {
+  @extend .login-box;
+}
+
+.login-input {
+  @extend .login-input;
+}
+
+.login-button {
+  @extend .login-button;
+}
+
+.error-message {
+  @extend .error-message;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
