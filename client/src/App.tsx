@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-
+import Register from './Register';
 import Login from './Login';
 import Header from './Header';
 import Chat from './Chat';
@@ -149,8 +149,12 @@ export default function App() {
     const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
-        if (username && !socketRef.current) {
-            socketRef.current = io('http://localhost:3333');
+        if (username && (!socketRef.current || !socketRef.current.connected)) {
+            socketRef.current = io('http://localhost:3333', {
+                auth: {
+                    token: localStorage.getItem('token'),
+                },
+            });
 
             socketRef.current.emit('setUsername', username);
 
@@ -164,7 +168,20 @@ export default function App() {
         };
     }, [username]);
 
-    if (!username) return <Login onLogin={setUsername} />;
+    if (!username) {
+        return (
+            <Router>
+                <Routes>
+                    <Route path="/" element={<Login onLogin={setUsername} />} />
+                    <Route
+                        path="/register"
+                        element={<Register onRegisterSuccess={(newUsername: string) => setUsername(newUsername)} />}
+                    />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </Router>
+        );
+    }
 
     return (
         <Router>
@@ -172,11 +189,13 @@ export default function App() {
                 onLogout={() => {
                     setUsername(null);
                     localStorage.removeItem('chatHistory');
+                    localStorage.removeItem('token');
                     socketRef.current?.disconnect();
                     socketRef.current = null;
                 }}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
+                username={username}
             />
             <Routes>
                 <Route path="/" element={<Home />} />
@@ -185,7 +204,7 @@ export default function App() {
                 <Route path="/cs2/transmissao" element={<CS2Transmissao username={username} />} />
                 <Route path="/kings-league/transmissao" element={<KingsLeagueTransmissao username={username} />} />
                 <Route path="/noticias" element={<div style={{ padding: '1rem' }}>📰 Notícias em breve!</div>} />
-                <Route path="/loja" element={<div style={{ padding: '1rem' }}>🛍️ Loja em construção!</div>} />
+                <Route path="/loja" element={<div style={{ padding: '1rem' }}>🛙️ Loja em construção!</div>} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>

@@ -88,6 +88,17 @@ body,
   transform: scale(1.05);
 }
 
+.secondary-button {
+  background-color: #f2f2f2;
+  color: #333;
+  margin-top: 10px;
+
+  &:hover {
+    background-color: #ddd;
+  }
+}
+
+
 .error-message {
   color: #ff4d4d;
   font-size: 14px;

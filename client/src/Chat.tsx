@@ -15,7 +15,11 @@ export default function Chat({ username, room }: ChatProps) {
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        socketRef.current = io('http://localhost:3333');
+        socketRef.current = io('http://localhost:3333', {
+            auth: {
+                token: localStorage.getItem('token'),
+            },
+        });
 
         socketRef.current.on('connect_error', (error) => {
             console.error('Erro de conexão com o servidor:', error);

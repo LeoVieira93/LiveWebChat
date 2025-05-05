@@ -6,9 +6,10 @@ interface HeaderProps {
     onLogout: () => void;
     currentPage: Page;
     setCurrentPage: React.Dispatch<React.SetStateAction<Page>>;
+    username: string;
 }
 
-export default function Header({ onLogout, currentPage, setCurrentPage }: HeaderProps) {
+export default function Header({ onLogout, currentPage, setCurrentPage, username }: HeaderProps) {
     return (
         <header className="header">
             <nav className="nav">
@@ -41,7 +42,10 @@ export default function Header({ onLogout, currentPage, setCurrentPage }: Header
                     Loja
                 </a>
             </nav>
-            <button className="logout" onClick={onLogout}>Sair</button>
+            <div className="user-info">
+                <span className="username">Olá, {username}</span>
+                <button className="logout" onClick={onLogout}>Sair</button>
+            </div>
         </header>
     );
 }
