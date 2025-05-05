@@ -71,7 +71,22 @@ npm install
 
 ### 4. Executando a aplicação
 
-- **Inicie o MongoDB localmente** (por exemplo, com `mongod`)
+- **Inicie o MongoDB localmente**:
+
+  - 🔹 **Se você tem o MongoDB instalado em sua máquina**, apenas execute:
+
+    ```bash
+    mongod
+    ```
+
+  - 🔹 **Se você NÃO tem o MongoDB instalado**, certifique-se de que o **Docker esteja rodando** e inicie o MongoDB via Docker:
+
+    ```bash
+    docker run -d -p 27017:27017 --name mongodb mongo
+    ```
+
+    > ⚠️ **O Docker Desktop precisa estar aberto para que esse comando funcione.**
+
 - **Backend:**
 
 ```bash
