@@ -1,4 +1,3 @@
-// app.ts
 import express, { Request, Response } from 'express';
 import { createServer } from 'http';
 import { Server as Io } from 'socket.io';
@@ -104,7 +103,6 @@ class App {
                     return next(new Error('Token inválido'));
                 }
 
-                // Agora o TypeScript sabe que decoded é JwtPayload
                 socket.data.username = decoded.username;
                 next();
             });

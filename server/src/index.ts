@@ -1,5 +1,4 @@
 import App from './app';
-// import './types/express';
 
 const app = new App();
 
