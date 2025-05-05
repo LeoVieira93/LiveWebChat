@@ -36,12 +36,11 @@ class App {
         this.app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
         this.app.use(bodyParser.json());
 
-        // Socket.IO middleware de autenticação
         this.io.use((socket, next) => {
             const token = socket.handshake.auth.token;
             if (!token) return next(new Error('Token não fornecido'));
 
-            jwt.verify(token, JWT_SECRET, (err:jwt.VerifyErrors | null, decoded: jwt.JwtPayload | string | undefined) => {
+            jwt.verify(token, JWT_SECRET, (err: jwt.VerifyErrors | null, decoded: jwt.JwtPayload | string | undefined) => {
                 if (err || !decoded || typeof decoded === 'string') return next(new Error('Token inválido'));
                 socket.data.username = (decoded as jwt.JwtPayload).username;
                 next();
@@ -49,10 +48,65 @@ class App {
         });
     }
 
-    private connectDatabase() {
-        mongoose.connect('mongodb://localhost:27017/chatdb')
-            .then(() => console.log('🟢 MongoDB conectado'))
-            .catch((err) => console.error('❌ Erro MongoDB:', err));
+    private async connectDatabase() {
+        try {
+            await mongoose.connect('mongodb://localhost:27017/chatdb');
+            console.log('🟢 MongoDB conectado');
+            await this.seedUsers();
+        } catch (err) {
+            console.error('❌ Erro MongoDB:', err);
+        }
+    }
+
+    private async seedUsers() {
+        const userSchema = new mongoose.Schema({
+            username: { type: String, required: true, unique: true },
+            password: { type: String, required: true },
+            fullName: { type: String, required: true },
+            cpf: { type: String, required: true },
+            email: { type: String, required: true },
+            phone: { type: String, required: true },
+        });
+
+        const User = mongoose.models.User || mongoose.model('User', userSchema);
+
+        const users = [
+            {
+                username: 'LeoVieira',
+                password: '12345',
+                fullName: 'Leonardo Vieira',
+                cpf: '000.000.000-00',
+                email: 'leonardo@email.com',
+                phone: '(11) 99999-0000'
+            },
+            {
+                username: 'Tety',
+                password: '12345',
+                fullName: 'Kethrin Weiss',
+                cpf: '111.111.111-11',
+                email: 'tety@email.com',
+                phone: '(21) 98888-1111'
+            },
+            {
+                username: 'admin',
+                password: '12345',
+                fullName: 'Administrador',
+                cpf: '222.222.222-22',
+                email: 'admin@email.com',
+                phone: '(31) 97777-2222'
+            }
+        ];
+
+        for (const u of users) {
+            const exists = await User.findOne({ username: u.username });
+            if (!exists) {
+                const hashed = await bcrypt.hash(u.password, 10);
+                await User.create({ ...u, password: hashed });
+                console.log(`✅ Usuário "${u.username}" criado.`);
+            } else {
+                console.log(`ℹ️ Usuário "${u.username}" já existe.`);
+            }
+        }
     }
 
     private routes() {
