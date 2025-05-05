@@ -1,0 +1,71 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #f0f0f0;
+  border-bottom: 2px solid #ccc;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  color: black;
+  align-items: center;
+  flex-grow: 1;
+
+  a {
+    text-decoration: none;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    color: inherit;
+
+    &:hover {
+      background-color: gray;
+      color: white;
+    }
+
+    &.active {
+      background-color: Black;
+      color: white;
+      font-weight: bold;
+    }
+  }
+}
+
+.header-logo {
+  width: 40px;
+  height: auto;
+  margin-right: 1rem;
+}
+
+.logout {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #ff7875;
+  }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  .username {
+    font-weight: bold;
+    color: #333;
+  }
+}
+

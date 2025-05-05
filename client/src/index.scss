@@ -1,0 +1,19 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: #000; // ou #242424, como preferir
+  color: rgba(255, 255, 255, 0.87);
+}
+
+#root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
